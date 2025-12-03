@@ -170,6 +170,7 @@ def run_full_pipeline(args):
         "test_mape": metrics["test_mape"],
         "target_column": target,
         "n_features": X_train_scaled.shape[1],
+        "feature_names": list(X_train_scaled.columns),  # Save feature names for API
         "hyperparameter_tuning": args.tuning,
         "random_state": args.random_state,
     }
@@ -239,6 +240,7 @@ def run_train_only(args):
         "test_r2": metrics["test_r2"],
         "target_column": target,
         "n_features": X_train_scaled.shape[1],
+        "feature_names": list(X_train_scaled.columns),  # Save feature names for API
     }
     save_model(model, scaler, args.model, args.scaler, metadata)
 

@@ -3,8 +3,8 @@
 # ═════════════════════════════════════════════════════════════════════════════════
 
 .PHONY: help setup clean clean-all format lint pylint type-check security code-quality \
-        data train evaluate predict feature-importance train-tuning pipeline \
-        test test-coverage deploy notebook validate-all ci
+	data train evaluate predict feature-importance train-tuning pipeline \
+	test test-coverage deploy notebook validate-all ci api api-test api-smoke retrain-smoke
 
 # ═════════════════════════════════════════════════════════════════════════════════
 # VARIABLES
@@ -73,6 +73,10 @@ help:
 	@echo "  🚀 DEPLOYMENT & OPERATIONS"
 	@echo "  ──────────────────────────────────────────────────────────────────────"
 	@echo "    make deploy             Package model for deployment"
+	@echo "    make api                Start FastAPI server for predictions"
+	@echo "    make api-test           Test the API with sample request"
+	@echo "    make api-smoke          Run API smoke tests (tests/test_api.py)"
+	@echo "    make retrain-smoke      Run retrain smoke test (tests/test_retrain.py)"
 	@echo "    make validate-all       Run complete validation (CI/CD ready)"
 	@echo ""
 	@echo "  🛠️  DEVELOPMENT TOOLS"
@@ -352,6 +356,66 @@ deploy:
 	@echo "   - Model:  $(MODEL_PATH)"
 	@echo "   - Scaler: $(SCALER_PATH)"
 	@echo ""
+
+# ═════════════════════════════════════════════════════════════════════════════════
+# API ENDPOINTS (FASTAPI)
+# ═════════════════════════════════════════════════════════════════════════════════
+
+api:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🌐 Starting FastAPI Server                                          ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "→ Checking model availability..."
+	@if [ ! -f "$(MODEL_PATH)" ] || [ ! -f "$(SCALER_PATH)" ]; then \
+		echo "⚠️  Warning: Model or scaler not found. Please train the model first."; \
+		echo "   Run: make train"; \
+		echo ""; \
+	fi
+	@echo "→ Starting FastAPI server on http://0.0.0.0:8000"
+	@echo ""
+	@echo "📚 API Documentation available at:"
+	@echo "   • Swagger UI: http://127.0.0.1:8000/docs"
+	@echo "   • ReDoc:      http://127.0.0.1:8000/redoc"
+	@echo ""
+	@echo "Press Ctrl+C to stop the server"
+	@echo ""
+	@$(PYTHON) -m uvicorn app:app --reload --host 0.0.0.0 --port 8000
+
+api-test:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🧪 Testing FastAPI Endpoints                                        ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "→ Opening Swagger UI for interactive testing..."
+	@echo ""
+	@echo "📖 Testing Instructions:"
+	@echo "   1. The browser will open to http://127.0.0.1:8000/docs"
+	@echo "   2. Test the /predict endpoint with sample data"
+	@echo "   3. Try the /retrain endpoint to retrain the model"
+	@echo "   4. Check /health and /model-info for system status"
+	@echo ""
+	@echo "⚠️  Note: Make sure the API server is running (make api)"
+	@echo ""
+	@start http://127.0.0.1:8000/docs
+
+api-smoke:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🧪 Running FastAPI Smoke Tests                                      ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@$(PYTHON) tests/test_api.py
+
+retrain-smoke:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🔄 Running Retrain Smoke Test                                       ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@$(PYTHON) tests/test_retrain.py
 
 # ═════════════════════════════════════════════════════════════════════════════════
 # DEVELOPMENT TOOLS
