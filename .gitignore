@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# ML Artifacts (optional - uncomment if you don't want to track models)
+# artifacts/models/*.pkl
+# artifacts/scalers/*.pkl
+
+# Test Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# MLflow
+mlruns/
+mlflow.db
+
+# DVC
+.dvc/
+*.dvc
+
+# Environment Variables
+.env
+.env.local
+
+# Data (optional - uncomment if you don't want to track large data files)
+# *.csv
+# *.parquet
+# *.h5
+
+# Temporary files
+*.tmp
+*.bak
+predictions*.csv
