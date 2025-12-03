@@ -290,7 +290,73 @@ make feature-importance
 make deploy
 ```
 
-### Option 2: Using the CLI Pipeline (Python Direct)
+### Option 2: Using the REST API (`app.py`)
+
+Run a FastAPI server to serve predictions and manage the model.
+
+#### Start the API server
+```bash
+python app.py
+# Server runs at http://127.0.0.1:8000
+# Interactive docs: http://127.0.0.1:8000/docs
+# ReDoc:           http://127.0.0.1:8000/redoc
+```
+
+#### Health check
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+#### Single prediction
+```bash
+curl -X POST http://127.0.0.1:8000/predict \
+    -H "Content-Type: application/json" \
+    -d '{
+        "date": "2015-01-15",
+        "quarter": "Quarter1",
+        "department": "sweing",
+        "day": "Thursday",
+        "team": 8.0,
+        "targeted_productivity": 0.80,
+        "smv": 26.16,
+        "wip": 1108.0,
+        "over_time": 7080.0,
+        "incentive": 98.0,
+        "idle_time": 0.0,
+        "idle_men": 0.0,
+        "no_of_style_change": 0.0,
+        "no_of_workers": 59.0
+    }'
+```
+
+#### Batch prediction
+```bash
+curl -X POST http://127.0.0.1:8000/predict-batch \
+    -H "Content-Type: application/json" \
+    -d '{
+        "samples": [
+            {"date": "2015-01-15", "quarter": "Quarter1", "department": "sweing", "day": "Thursday", "team": 8.0, "targeted_productivity": 0.80, "smv": 26.16, "wip": 1108.0, "over_time": 7080.0, "incentive": 98.0, "idle_time": 0.0, "idle_men": 0.0, "no_of_style_change": 0.0, "no_of_workers": 59.0},
+            {"date": "2015-01-16", "quarter": "Quarter1", "department": "finishing", "day": "Friday", "team": 1.0, "targeted_productivity": 0.75, "smv": 3.94, "wip": 500.0, "over_time": 960.0, "incentive": 0.0, "idle_time": 0.0, "idle_men": 0.0, "no_of_style_change": 0.0, "no_of_workers": 8.0}
+        ]
+    }'
+```
+
+#### Retrain the model via API
+```bash
+curl -X POST http://127.0.0.1:8000/retrain \
+    -H "Content-Type: application/json" \
+    -d '{
+        "hyperparameter_tuning": false,
+        "n_estimators": 200,
+        "max_depth": 10,
+        "min_samples_split": 15,
+        "min_samples_leaf": 2,
+        "max_features": 0.5,
+        "test_size": 0.2
+    }'
+```
+
+### Option 3: Using the CLI Pipeline (Python Direct)
 
 The `main.py` script provides a complete command-line interface for various operations:
 
