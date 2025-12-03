@@ -124,6 +124,7 @@ garment-productivity-prediction/
 ├── model_pipeline.py                           # Core ML pipeline module
 ├── main.py                                     # CLI for executing the pipeline
 ├── requirements.txt                            # Python dependencies
+├── Makefile                                    # Automation commands for MLOps workflows
 │
 ├── artifacts/                                  # Model artifacts and results
 │   ├── models/                                 # Trained model files (.pkl)
@@ -144,6 +145,7 @@ garment-productivity-prediction/
 
 - **`model_pipeline.py`**: Contains all pipeline functions (data loading, cleaning, feature engineering, training, evaluation)
 - **`main.py`**: Command-line interface for running different pipeline modes
+- **`Makefile`**: Automation commands for setup, training, testing, and deployment workflows
 - **`tests/`**: Unit tests using pytest to validate pipeline components
 - **`artifacts/`**: Stores trained models, scalers, and evaluation results
 
@@ -156,6 +158,27 @@ garment-productivity-prediction/
 - Jupyter Notebook or JupyterLab
 
 ### Setup Instructions
+
+#### Quick Setup with Makefile (Recommended)
+
+```bash
+# Clone repository
+git clone https://github.com/fares279/garment-productivity-prediction.git
+cd garment-productivity-prediction
+
+# One-command setup: Create venv and install all dependencies
+make setup
+
+# Activate virtual environment
+# Windows PowerShell:
+.\venv\Scripts\Activate.ps1
+# Windows CMD:
+.\venv\Scripts\activate.bat
+# Linux/Mac:
+source venv/bin/activate
+```
+
+#### Manual Setup
 
 1. **Clone the repository**
 ```bash
@@ -192,7 +215,82 @@ The project uses the following key dependencies:
 
 ## 💻 Usage
 
-### Option 1: Using the CLI Pipeline (Recommended for Production)
+### Option 1: Using Makefile (Recommended for MLOps Workflows)
+
+The `Makefile` provides a comprehensive set of commands for the entire ML lifecycle:
+
+#### 📋 View All Available Commands
+```bash
+make help
+```
+
+#### 🚀 Quick Start Commands
+
+```bash
+# Setup environment
+make setup                    # Create venv and install dependencies
+
+# Run full ML pipeline
+make full-pipeline            # Train, evaluate, and save model
+
+# Training options
+make train                    # Train Random Forest model
+make train-tuning             # Train with hyperparameter tuning
+
+# Model evaluation and analysis
+make evaluate                 # Evaluate model performance
+make feature-importance       # Analyze feature importance
+make predict                  # Make predictions on data
+
+# Code quality and testing
+make format                   # Format code with Black
+make lint                     # Lint code with Flake8
+make test                     # Run unit tests
+make test-coverage            # Run tests with coverage report
+make code-quality             # Run all quality checks
+
+# Data validation
+make validate-data            # Validate dataset structure
+
+# CI/CD pipelines
+make ci                       # Run CI pipeline (quality + tests)
+make pipeline                 # Run complete MLOps pipeline
+make validate-all             # Run all validation checks
+
+# Development tools
+make notebook                 # Start Jupyter Notebook
+
+# Cleanup
+make clean                    # Remove cache and temp files
+make clean-all                # Deep clean (remove venv)
+```
+
+#### 🔄 Complete MLOps Workflow Example
+
+```bash
+# 1. Setup environment
+make setup
+
+# 2. Validate data
+make validate-data
+
+# 3. Run code quality checks
+make code-quality
+
+# 4. Run tests
+make test
+
+# 5. Train model with full pipeline
+make full-pipeline
+
+# 6. Analyze results
+make feature-importance
+
+# 7. Prepare for deployment
+make deploy
+```
+
+### Option 2: Using the CLI Pipeline (Python Direct)
 
 The `main.py` script provides a complete command-line interface for various operations:
 
@@ -233,7 +331,7 @@ python main.py --mode full_pipeline --data data.csv --target actual_productivity
 python main.py --mode full_pipeline --data data.csv --target actual_productivity --random_state 123
 ```
 
-### Option 2: Using Jupyter Notebook (Recommended for Analysis)
+### Option 3: Using Jupyter Notebook (Recommended for Analysis)
 
 1. **Launch Jupyter Notebook**
 ```bash
@@ -244,7 +342,7 @@ jupyter notebook
    - Navigate to `Garment_Productivity_Analysis.ipynb`
    - Run cells sequentially to reproduce the analysis
 
-### Option 3: Using Python Pipeline Module
+### Option 4: Using Python Pipeline Module
 
 ```python
 from model_pipeline import (
@@ -274,14 +372,97 @@ save_model(model, scaler, 'artifacts/models/my_model.pkl', 'artifacts/scalers/my
 Execute unit tests to validate the pipeline:
 
 ```bash
-# Run all tests
+# Using Makefile (Recommended)
+make test                     # Run unit tests
+make test-coverage            # Run tests with coverage report
+
+# Using pytest directly
 pytest tests/
-
-# Run with coverage report
 pytest tests/ --cov=model_pipeline --cov-report=html
-
-# Run specific test
 pytest tests/test_pipeline.py::test_train_and_evaluate_model -v
+```
+
+---
+
+## 🛠️ Makefile Commands Reference
+
+The `Makefile` provides 30+ commands organized into categories for efficient MLOps workflows:
+
+### 🔧 Environment Setup
+| Command | Description |
+|---------|-------------|
+| `make setup` | Create virtual environment and install all dependencies |
+| `make install` | Install/update project dependencies |
+
+### ✨ Code Quality & CI Checks
+| Command | Description |
+|---------|-------------|
+| `make format` | Auto-format code with Black |
+| `make lint` | Check code quality with Flake8 |
+| `make pylint` | Comprehensive code analysis with Pylint |
+| `make type-check` | Run type checking with Mypy |
+| `make security` | Security scan with Bandit |
+| `make code-quality` | Run ALL quality checks (format + lint + security) |
+
+### 📊 Data & Pipeline
+| Command | Description |
+|---------|-------------|
+| `make validate-data` | Validate dataset exists and structure |
+| `make full-pipeline` | Run complete ML pipeline (train + evaluate) |
+
+### 🤖 Model Training & Evaluation
+| Command | Description |
+|---------|-------------|
+| `make train` | Train Random Forest model (default) |
+| `make train-tuning` | Train with hyperparameter tuning |
+| `make evaluate` | Evaluate trained model performance |
+| `make predict` | Make predictions on new data |
+| `make feature-importance` | Analyze feature importance |
+
+### 🧪 Testing
+| Command | Description |
+|---------|-------------|
+| `make test` | Run unit tests |
+| `make test-coverage` | Run tests with coverage report |
+
+### 🚀 Deployment & Operations
+| Command | Description |
+|---------|-------------|
+| `make deploy` | Package model for deployment |
+| `make validate-all` | Run complete validation (CI/CD ready) |
+
+### 🛠️ Development Tools
+| Command | Description |
+|---------|-------------|
+| `make notebook` | Start Jupyter Notebook server |
+
+### 🧹 Cleanup
+| Command | Description |
+|---------|-------------|
+| `make clean` | Remove cache, temp files, and artifacts |
+| `make clean-all` | Deep clean (remove venv + all generated files) |
+
+### 🔄 CI/CD Pipeline
+| Command | Description |
+|---------|-------------|
+| `make ci` | Run complete CI pipeline (quality + tests) |
+| `make pipeline` | Run full MLOps pipeline (CI + train + deploy) |
+
+### Example Workflows
+
+**Development Workflow:**
+```bash
+make setup && make validate-data && make full-pipeline && make feature-importance
+```
+
+**CI/CD Workflow:**
+```bash
+make ci && make deploy
+```
+
+**Complete MLOps Pipeline:**
+```bash
+make pipeline  # Runs: ci → full-pipeline → deploy
 ```
 
 ---
@@ -458,30 +639,43 @@ All trained models, scalers, and results are saved in the `artifacts/` directory
 
 ### For Data Scientists (Analysis & Experimentation)
 ```bash
-# 1. Clone and setup
+# 1. Clone and setup using Makefile
 git clone https://github.com/fares279/garment-productivity-prediction.git
 cd garment-productivity-prediction
-python -m venv venv
-venv\Scripts\activate  # On Windows
-pip install -r requirements.txt
+make setup
+venv\Scripts\activate  # On Windows (or source venv/bin/activate on Linux/Mac)
 
 # 2. Run Jupyter notebook for analysis
-jupyter notebook Garment_Productivity_Analysis.ipynb
+make notebook
+# Or manually: jupyter notebook Garment_Productivity_Analysis.ipynb
 ```
 
 ### For ML Engineers (Production Pipeline)
 ```bash
-# 1. Setup environment
-pip install -r requirements.txt
+# 1. Setup environment with Makefile
+make setup
 
 # 2. Run full training pipeline
-python main.py --mode full_pipeline --data data.csv --target actual_productivity
+make full-pipeline
 
 # 3. Make predictions
-python main.py --mode predict --data new_data.csv --model artifacts/models/model.pkl --output predictions.csv
+make predict
 
 # 4. Run tests
-pytest tests/ -v
+make test
+```
+
+### For DevOps/MLOps Engineers (CI/CD)
+```bash
+# 1. Setup environment
+make setup
+
+# 2. Run complete CI/CD pipeline
+make pipeline  # Runs: code quality → tests → training → deployment
+
+# Or run individual stages
+make ci        # CI checks (quality + tests + validation)
+make deploy    # Prepare deployment artifacts
 ```
 
 ### For Developers (Integration)
