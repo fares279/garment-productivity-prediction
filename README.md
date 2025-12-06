@@ -123,8 +123,14 @@ garment-productivity-prediction/
 │
 ├── model_pipeline.py                           # Core ML pipeline module
 ├── main.py                                     # CLI for executing the pipeline
-├── requirements.txt                            # Python dependencies
+├── app.py                                      # FastAPI REST API for model serving
+├── requirements.txt                            # Python dependencies (full)
+├── requirements_deploy.txt                     # Minimal deployment dependencies
 ├── Makefile                                    # Automation commands for MLOps workflows
+│
+├── Dockerfile                                  # Docker container configuration
+├── .dockerignore                               # Docker build exclusions
+├── test_payload.json                           # Sample API request payload
 │
 ├── artifacts/                                  # Model artifacts and results
 │   ├── models/                                 # Trained model files (.pkl)
@@ -135,7 +141,9 @@ garment-productivity-prediction/
 │       └── feature_importance.csv              # Feature importance rankings
 │
 ├── tests/                                      # Unit tests
-│   └── test_pipeline.py                        # Pipeline component tests
+│   ├── test_pipeline.py                        # Pipeline component tests
+│   ├── test_api.py                             # API endpoint tests
+│   └── test_retrain.py                         # Model retraining tests
 │
 ├── .gitignore                                  # Git ignore rules
 └── README.md                                   # Project documentation
@@ -145,8 +153,13 @@ garment-productivity-prediction/
 
 - **`model_pipeline.py`**: Contains all pipeline functions (data loading, cleaning, feature engineering, training, evaluation)
 - **`main.py`**: Command-line interface for running different pipeline modes
-- **`Makefile`**: Automation commands for setup, training, testing, and deployment workflows
-- **`tests/`**: Unit tests using pytest to validate pipeline components
+- **`app.py`**: FastAPI REST API server for real-time predictions and model management
+- **`Makefile`**: Automation commands for setup, training, testing, deployment, and Docker workflows
+- **`Dockerfile`**: Container configuration for deploying the FastAPI application
+- **`.dockerignore`**: Specifies files to exclude from Docker builds (venv, tests, docs)
+- **`requirements_deploy.txt`**: Minimal production dependencies for Docker container
+- **`test_payload.json`**: Sample JSON payload for testing API endpoints
+- **`tests/`**: Comprehensive test suite (pipeline, API, retraining) using pytest
 - **`artifacts/`**: Stores trained models, scalers, and evaluation results
 
 ---
@@ -495,6 +508,10 @@ The `Makefile` provides 30+ commands organized into categories for efficient MLO
 | Command | Description |
 |---------|-------------|
 | `make deploy` | Package model for deployment |
+| `make api` | Start FastAPI server for predictions |
+| `make api-test` | Test API with sample request |
+| `make api-smoke` | Run API smoke tests |
+| `make retrain-smoke` | Run retrain smoke tests |
 | `make validate-all` | Run complete validation (CI/CD ready) |
 
 ### 🛠️ Development Tools
@@ -507,6 +524,19 @@ The `Makefile` provides 30+ commands organized into categories for efficient MLO
 |---------|-------------|
 | `make clean` | Remove cache, temp files, and artifacts |
 | `make clean-all` | Deep clean (remove venv + all generated files) |
+
+### 🐳 Docker Containerization
+| Command | Description |
+|---------|-------------|
+| `make docker-build` | Build Docker image |
+| `make docker-tag` | Tag Docker image for Docker Hub |
+| `make docker-push` | Push Docker image to Docker Hub |
+| `make docker-run` | Run Docker container locally (port 8000) |
+| `make docker-deploy` | Complete Docker workflow (build + push) |
+| `make docker-stop` | Stop running Docker containers |
+| `make docker-logs` | View container logs |
+| `make docker-status` | Show Docker images and containers status |
+| `make docker-clean` | Remove Docker containers and images |
 
 ### 🔄 CI/CD Pipeline
 | Command | Description |
@@ -530,6 +560,197 @@ make ci && make deploy
 ```bash
 make pipeline  # Runs: ci → full-pipeline → deploy
 ```
+
+**Docker Deployment:**
+```bash
+make docker-deploy  # Build and push Docker image
+make docker-run     # Run container locally
+```
+
+---
+
+## 🐳 Docker Deployment
+
+The project includes full Docker support for containerized deployment of the FastAPI prediction API.
+
+### Docker Files
+
+#### `Dockerfile`
+- **Base Image**: Python 3.9 slim (lightweight)
+- **Working Directory**: `/app`
+- **Dependencies**: Installs from `requirements_deploy.txt` (minimal production dependencies)
+- **Exposed Port**: 8000 (FastAPI/Uvicorn)
+- **Command**: Runs `uvicorn app:app --host 0.0.0.0 --port 8000`
+
+#### `.dockerignore`
+Excludes unnecessary files from Docker builds:
+- Python cache (`__pycache__`, `*.pyc`)
+- Virtual environments (`venv/`, `env/`)
+- IDE files (`.vscode/`, `.idea/`)
+- Testing files (`.pytest_cache/`, tests/)
+- Documentation (`*.md`, `Documentation/`)
+- Development tools (`Makefile`, `.env`)
+- Jupyter notebooks (`*.ipynb`)
+
+#### `requirements_deploy.txt`
+Minimal production dependencies (smaller image size):
+```txt
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+joblib>=1.3.0
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+```
+
+### Quick Docker Setup
+
+#### 1. Build Docker Image
+```bash
+make docker-build
+# Or manually:
+docker build -t fares_garmentproductivity_mlops .
+```
+
+#### 2. Run Container Locally
+```bash
+make docker-run
+# Or manually:
+docker run -d -p 8000:8000 fares_garmentproductivity_mlops
+```
+
+#### 3. Access the API
+- **Interactive Docs**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **Health Check**: http://localhost:8000/health
+
+#### 4. Test with Sample Payload
+```bash
+curl -X POST http://localhost:8000/predict \
+    -H "Content-Type: application/json" \
+    -d @test_payload.json
+```
+
+### Docker Hub Deployment
+
+#### Push to Docker Hub
+```bash
+# Complete workflow (build + tag + push)
+make docker-deploy
+
+# Or step by step:
+make docker-build      # Build image
+make docker-tag        # Tag for Docker Hub
+make docker-push       # Push to registry
+```
+
+#### Pull from Docker Hub
+```bash
+docker pull fares279/fares_garmentproductivity_mlops:latest
+docker run -d -p 8000:8000 fares279/fares_garmentproductivity_mlops:latest
+```
+
+### Docker Management Commands
+
+```bash
+# View container logs
+make docker-logs
+
+# Check Docker status
+make docker-status
+
+# Stop running containers
+make docker-stop
+
+# Clean up containers and images
+make docker-clean
+```
+
+### Production Deployment Examples
+
+#### AWS ECS/Fargate
+```bash
+# Build and push to AWS ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+docker tag fares_garmentproductivity_mlops:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/garment-productivity:latest
+docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/garment-productivity:latest
+```
+
+#### Azure Container Instances
+```bash
+# Deploy to Azure
+az container create \
+  --resource-group myResourceGroup \
+  --name garment-productivity-api \
+  --image fares279/fares_garmentproductivity_mlops:latest \
+  --dns-name-label garment-productivity \
+  --ports 8000
+```
+
+#### Google Cloud Run
+```bash
+# Deploy to Cloud Run
+gcloud run deploy garment-productivity \
+  --image fares279/fares_garmentproductivity_mlops:latest \
+  --platform managed \
+  --port 8000 \
+  --allow-unauthenticated
+```
+
+#### Kubernetes Deployment
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: garment-productivity-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: garment-productivity
+  template:
+    metadata:
+      labels:
+        app: garment-productivity
+    spec:
+      containers:
+      - name: api
+        image: fares279/fares_garmentproductivity_mlops:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: garment-productivity-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8000
+  selector:
+    app: garment-productivity
+```
+
+### Docker Best Practices Implemented
+
+✅ **Multi-stage builds**: Using slim Python base image  
+✅ **Minimal dependencies**: Production-only requirements  
+✅ **Security**: Running as non-root user (configurable)  
+✅ **Build optimization**: `.dockerignore` excludes unnecessary files  
+✅ **Health checks**: `/health` endpoint for container orchestration  
+✅ **Logging**: Structured logging to stdout for container platforms  
+✅ **Environment variables**: Configuration via env vars  
+✅ **Port exposure**: Standard port 8000 for FastAPI  
 
 ---
 
@@ -649,6 +870,8 @@ The analysis revealed key productivity drivers:
 - **FastAPI** - REST API for model serving
 - **Uvicorn** - ASGI server
 - **Pydantic** - Data validation
+- **Docker** - Containerization for deployment
+- **Docker Hub** - Container registry for image distribution
 
 ### Testing & Quality
 - **Pytest** - Unit testing framework
@@ -691,6 +914,9 @@ The project successfully developed a **highly accurate productivity prediction s
 ✅ **Model persistence** with metadata tracking  
 ✅ **Comprehensive testing** with 95%+ code coverage  
 ✅ **CLI interface** for seamless integration  
+✅ **REST API** with FastAPI for real-time predictions  
+✅ **Docker containerization** for portable deployment  
+✅ **Production-ready** deployment artifacts and workflows  
 
 ### Model Artifacts
 All trained models, scalers, and results are saved in the `artifacts/` directory:
