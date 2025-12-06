@@ -4,7 +4,9 @@
 
 .PHONY: help setup clean clean-all format lint pylint type-check security code-quality \
 	data train evaluate predict feature-importance train-tuning pipeline \
-	test test-coverage deploy notebook validate-all ci api api-test api-smoke retrain-smoke
+	test test-coverage deploy notebook validate-all ci api api-test api-smoke retrain-smoke \
+	docker-build docker-tag docker-push docker-run docker-deploy docker-stop docker-logs \
+	docker-clean docker-status
 
 # ═════════════════════════════════════════════════════════════════════════════════
 # VARIABLES
@@ -78,6 +80,18 @@ help:
 	@echo "    make api-smoke          Run API smoke tests (tests/test_api.py)"
 	@echo "    make retrain-smoke      Run retrain smoke test (tests/test_retrain.py)"
 	@echo "    make validate-all       Run complete validation (CI/CD ready)"
+	@echo ""
+	@echo "  🐳 DOCKER CONTAINERIZATION"
+	@echo "  ──────────────────────────────────────────────────────────────────────"
+	@echo "    make docker-build       Build Docker image"
+	@echo "    make docker-tag         Tag Docker image for Docker Hub"
+	@echo "    make docker-push        Push Docker image to Docker Hub"
+	@echo "    make docker-run         Run Docker container locally"
+	@echo "    make docker-deploy      Complete Docker workflow (build + push)"
+	@echo "    make docker-stop        Stop running Docker containers"
+	@echo "    make docker-logs        View container logs"
+	@echo "    make docker-status      Show Docker images and containers status"
+	@echo "    make docker-clean       Remove Docker containers and images"
 	@echo ""
 	@echo "  🛠️  DEVELOPMENT TOOLS"
 	@echo "  ──────────────────────────────────────────────────────────────────────"
@@ -506,6 +520,118 @@ pipeline: ci full-pipeline deploy
 	@echo "  - Review model performance in artifacts/results/"
 	@echo "  - Check feature importance in artifacts/results/feature_importance.csv"
 	@echo "  - Deploy model using 'make deploy'"
+	@echo ""
+
+# ═════════════════════════════════════════════════════════════════════════════════
+# DOCKER CONTAINERIZATION
+# ═════════════════════════════════════════════════════════════════════════════════
+
+# Docker variables
+DOCKER_IMAGE = fares_garmentproductivity_mlops
+DOCKER_USERNAME = fares279
+
+docker-build:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🐳 Building Docker Image                                            ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	docker build -t $(DOCKER_IMAGE) .
+	@echo ""
+	@echo "✓ Docker image built successfully: $(DOCKER_IMAGE)"
+	@echo ""
+
+docker-tag:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🏷️  Tagging Docker Image                                            ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	docker tag $(DOCKER_IMAGE) $(DOCKER_USERNAME)/$(DOCKER_IMAGE):latest
+	@echo ""
+	@echo "✓ Docker image tagged: $(DOCKER_USERNAME)/$(DOCKER_IMAGE):latest"
+	@echo ""
+
+docker-push: docker-tag
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  ⬆️  Pushing Docker Image to Docker Hub                              ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	docker push $(DOCKER_USERNAME)/$(DOCKER_IMAGE):latest
+	@echo ""
+	@echo "✓ Docker image pushed successfully to Docker Hub"
+	@echo ""
+
+docker-run:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🚀 Running Docker Container                                         ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	docker run -d -p 8000:8000 $(DOCKER_IMAGE)
+	@echo ""
+	@echo "✓ Docker container started"
+	@echo "  Access API at: http://localhost:8000/docs"
+	@echo ""
+
+docker-deploy: docker-build docker-push
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🎉 Docker Deployment Complete                                       ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "  ✓ Image built"
+	@echo "  ✓ Image pushed to Docker Hub"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  - Run locally: make docker-run"
+	@echo "  - Pull from anywhere: docker pull $(DOCKER_USERNAME)/$(DOCKER_IMAGE):latest"
+	@echo ""
+
+docker-stop:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  ⏹️  Stopping Docker Containers                                      ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@docker ps -q --filter ancestor=$(DOCKER_IMAGE) | xargs -r docker stop
+	@echo "✓ All containers stopped"
+	@echo ""
+
+docker-logs:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  📋 Docker Container Logs                                            ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@docker logs $$(docker ps -q --filter ancestor=$(DOCKER_IMAGE) | head -1) 2>/dev/null || echo "No running container found"
+	@echo ""
+
+docker-clean:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🧹 Cleaning Docker Resources                                        ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@docker ps -aq --filter ancestor=$(DOCKER_IMAGE) | xargs -r docker rm -f
+	@echo "✓ Containers removed"
+	@docker rmi $(DOCKER_IMAGE) 2>/dev/null || true
+	@docker rmi $(DOCKER_USERNAME)/$(DOCKER_IMAGE):latest 2>/dev/null || true
+	@echo "✓ Images removed"
+	@echo ""
+
+docker-status:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  📊 Docker Status                                                    ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "Images:"
+	@docker images | grep -E "REPOSITORY|$(DOCKER_IMAGE)" || echo "No images found"
+	@echo ""
+	@echo "Running Containers:"
+	@docker ps --filter ancestor=$(DOCKER_IMAGE) || echo "No containers running"
 	@echo ""
 
 # ═════════════════════════════════════════════════════════════════════════════════
