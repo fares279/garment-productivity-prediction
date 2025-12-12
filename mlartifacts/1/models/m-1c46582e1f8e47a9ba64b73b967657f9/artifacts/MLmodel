@@ -1,0 +1,96 @@
+artifact_path: mlflow-artifacts:/1/models/m-1c46582e1f8e47a9ba64b73b967657f9/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.10.12
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+is_signature_from_type_hint: false
+mlflow_version: 3.6.0
+model_id: m-1c46582e1f8e47a9ba64b73b967657f9
+model_size_bytes: 1122231
+model_uuid: m-1c46582e1f8e47a9ba64b73b967657f9
+prompts: null
+run_id: c045b3a6137c46638f71346937f1d7ec
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "team", "required": true}, {"type": "double",
+    "name": "targeted_productivity", "required": true}, {"type": "double", "name":
+    "smv", "required": true}, {"type": "double", "name": "wip", "required": true},
+    {"type": "double", "name": "over_time", "required": true}, {"type": "double",
+    "name": "incentive", "required": true}, {"type": "double", "name": "idle_time",
+    "required": true}, {"type": "double", "name": "idle_men", "required": true}, {"type":
+    "double", "name": "no_of_style_change", "required": true}, {"type": "double",
+    "name": "no_of_workers", "required": true}, {"type": "double", "name": "date_1/10/2015",
+    "required": true}, {"type": "double", "name": "date_1/11/2015", "required": true},
+    {"type": "double", "name": "date_1/12/2015", "required": true}, {"type": "double",
+    "name": "date_1/13/2015", "required": true}, {"type": "double", "name": "date_1/14/2015",
+    "required": true}, {"type": "double", "name": "date_1/15/2015", "required": true},
+    {"type": "double", "name": "date_1/17/2015", "required": true}, {"type": "double",
+    "name": "date_1/18/2015", "required": true}, {"type": "double", "name": "date_1/19/2015",
+    "required": true}, {"type": "double", "name": "date_1/20/2015", "required": true},
+    {"type": "double", "name": "date_1/21/2015", "required": true}, {"type": "double",
+    "name": "date_1/22/2015", "required": true}, {"type": "double", "name": "date_1/24/2015",
+    "required": true}, {"type": "double", "name": "date_1/25/2015", "required": true},
+    {"type": "double", "name": "date_1/26/2015", "required": true}, {"type": "double",
+    "name": "date_1/27/2015", "required": true}, {"type": "double", "name": "date_1/28/2015",
+    "required": true}, {"type": "double", "name": "date_1/29/2015", "required": true},
+    {"type": "double", "name": "date_1/3/2015", "required": true}, {"type": "double",
+    "name": "date_1/31/2015", "required": true}, {"type": "double", "name": "date_1/4/2015",
+    "required": true}, {"type": "double", "name": "date_1/5/2015", "required": true},
+    {"type": "double", "name": "date_1/6/2015", "required": true}, {"type": "double",
+    "name": "date_1/7/2015", "required": true}, {"type": "double", "name": "date_1/8/2015",
+    "required": true}, {"type": "double", "name": "date_2/1/2015", "required": true},
+    {"type": "double", "name": "date_2/10/2015", "required": true}, {"type": "double",
+    "name": "date_2/11/2015", "required": true}, {"type": "double", "name": "date_2/12/2015",
+    "required": true}, {"type": "double", "name": "date_2/14/2015", "required": true},
+    {"type": "double", "name": "date_2/15/2015", "required": true}, {"type": "double",
+    "name": "date_2/16/2015", "required": true}, {"type": "double", "name": "date_2/17/2015",
+    "required": true}, {"type": "double", "name": "date_2/18/2015", "required": true},
+    {"type": "double", "name": "date_2/19/2015", "required": true}, {"type": "double",
+    "name": "date_2/2/2015", "required": true}, {"type": "double", "name": "date_2/22/2015",
+    "required": true}, {"type": "double", "name": "date_2/23/2015", "required": true},
+    {"type": "double", "name": "date_2/24/2015", "required": true}, {"type": "double",
+    "name": "date_2/25/2015", "required": true}, {"type": "double", "name": "date_2/26/2015",
+    "required": true}, {"type": "double", "name": "date_2/28/2015", "required": true},
+    {"type": "double", "name": "date_2/3/2015", "required": true}, {"type": "double",
+    "name": "date_2/4/2015", "required": true}, {"type": "double", "name": "date_2/5/2015",
+    "required": true}, {"type": "double", "name": "date_2/7/2015", "required": true},
+    {"type": "double", "name": "date_2/8/2015", "required": true}, {"type": "double",
+    "name": "date_2/9/2015", "required": true}, {"type": "double", "name": "date_3/1/2015",
+    "required": true}, {"type": "double", "name": "date_3/10/2015", "required": true},
+    {"type": "double", "name": "date_3/11/2015", "required": true}, {"type": "double",
+    "name": "date_3/2/2015", "required": true}, {"type": "double", "name": "date_3/3/2015",
+    "required": true}, {"type": "double", "name": "date_3/4/2015", "required": true},
+    {"type": "double", "name": "date_3/5/2015", "required": true}, {"type": "double",
+    "name": "date_3/7/2015", "required": true}, {"type": "double", "name": "date_3/8/2015",
+    "required": true}, {"type": "double", "name": "date_3/9/2015", "required": true},
+    {"type": "double", "name": "quarter_Quarter2", "required": true}, {"type": "double",
+    "name": "quarter_Quarter3", "required": true}, {"type": "double", "name": "quarter_Quarter4",
+    "required": true}, {"type": "double", "name": "quarter_Quarter5", "required":
+    true}, {"type": "double", "name": "department_finishing ", "required": true},
+    {"type": "double", "name": "department_sweing", "required": true}, {"type": "double",
+    "name": "day_Saturday", "required": true}, {"type": "double", "name": "day_Sunday",
+    "required": true}, {"type": "double", "name": "day_Thursday", "required": true},
+    {"type": "double", "name": "day_Tuesday", "required": true}, {"type": "double",
+    "name": "day_Wednesday", "required": true}, {"type": "double", "name": "total_time",
+    "required": true}, {"type": "double", "name": "productive_time", "required": true},
+    {"type": "double", "name": "work_complexity", "required": true}, {"type": "double",
+    "name": "worker_utilization", "required": true}, {"type": "double", "name": "incentive_per_worker",
+    "required": true}, {"type": "double", "name": "wip_per_worker", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2025-12-12 15:12:55.937315'

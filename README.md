@@ -125,6 +125,9 @@ garment-productivity-prediction/
 ├── main.py                                     # CLI for executing the pipeline
 ├── app.py                                      # FastAPI REST API for model serving
 ├── requirements.txt                            # Python dependencies (full)
+├── mlflow.db                                   # MLflow tracking database (SQLite)
+├── mlruns/                                     # MLflow local artifact store
+├── mlartifacts/                                # Exported MLflow model artifacts (versions)
 ├── requirements_deploy.txt                     # Minimal deployment dependencies
 ├── Makefile                                    # Automation commands for MLOps workflows
 │
@@ -161,6 +164,9 @@ garment-productivity-prediction/
 - **`test_payload.json`**: Sample JSON payload for testing API endpoints
 - **`tests/`**: Comprehensive test suite (pipeline, API, retraining) using pytest
 - **`artifacts/`**: Stores trained models, scalers, and evaluation results
+- **`mlartifacts/`**: MLflow-exported model artifacts (e.g., `MLmodel`, `model.pkl`, `conda.yaml`, `python_env.yaml`, `requirements.txt`, input examples) organized by run and model version
+- **`mlruns/`**: MLflow local artifact store for runs and metrics
+- **`mlflow.db`**: SQLite backend store for MLflow tracking
 
 ---
 
@@ -544,6 +550,11 @@ The `Makefile` provides 30+ commands organized into categories for efficient MLO
 | `make ci` | Run complete CI pipeline (quality + tests) |
 | `make pipeline` | Run full MLOps pipeline (CI + train + deploy) |
 
+### 📟 MLflow Tracking
+| Command | Description |
+|---------|-------------|
+| `make mlflow-ui` | Launch MLflow UI at http://127.0.0.1:5000 (uses `mlflow.db` + `mlruns/`) |
+
 ### Example Workflows
 
 **Development Workflow:**
@@ -751,6 +762,10 @@ spec:
 ✅ **Logging**: Structured logging to stdout for container platforms  
 ✅ **Environment variables**: Configuration via env vars  
 ✅ **Port exposure**: Standard port 8000 for FastAPI  
+
+### Notes on ML Artifacts
+- Docker image includes only minimal runtime dependencies from `requirements_deploy.txt`.
+- Full training dependencies and MLflow artifacts (`mlartifacts/`, `mlruns/`, `mlflow.db`) are primarily for local experimentation and tracking, not required in production containers.
 
 ---
 

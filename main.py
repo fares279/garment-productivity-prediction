@@ -15,6 +15,12 @@ import sys
 import os
 import pandas as pd
 import numpy as np
+import mlflow
+import mlflow.sklearn
+from mlflow.models.signature import infer_signature
+
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
+EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT", "garment_productivity_pipeline")
 
 # Import pipeline functions
 from model_pipeline import (
@@ -124,6 +130,28 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def configure_mlflow():
+    """Configure MLflow tracking URI and experiment name."""
+    mlflow.set_tracking_uri(TRACKING_URI)
+    mlflow.set_experiment(EXPERIMENT_NAME)
+
+
+def log_model_with_signature(model, X_sample):
+    """Log model to MLflow with signature/input example; keeps backward compatibility."""
+    X_df = pd.DataFrame(X_sample) if isinstance(X_sample, np.ndarray) else X_sample
+    preds = model.predict(X_df)
+    signature = infer_signature(X_df, preds)
+    input_example = X_df.head(2)
+    try:
+        mlflow.sklearn.log_model(
+            model, name="model", signature=signature, input_example=input_example
+        )
+    except TypeError:
+        mlflow.sklearn.log_model(
+            model, artifact_path="model", signature=signature, input_example=input_example
+        )
+
+
 def run_full_pipeline(args):
     """
     Execute the complete ML pipeline from data loading to model saving.
@@ -153,6 +181,9 @@ def run_full_pipeline(args):
     # Step 5: Scale features
     X_train_scaled, X_test_scaled, scaler = scale_features(X_train, X_test)
 
+    # Configure MLflow experiment
+    configure_mlflow()
+
     # Step 6: Train model
     model = train_model(
         X_train_scaled, y_train, hyperparameter_tuning=args.tuning, random_state=args.random_state
@@ -160,6 +191,35 @@ def run_full_pipeline(args):
 
     # Step 7: Evaluate model
     metrics = evaluate_model(model, X_train_scaled, X_test_scaled, y_train, y_test, verbose=True)
+
+    # Log to MLflow
+    with mlflow.start_run(run_name="full_pipeline"):
+        # Params
+        mlflow.log_params({
+            "test_size": args.test_size,
+            "random_state": args.random_state,
+            "hyperparameter_tuning": args.tuning,
+            "n_features": int(X_train_scaled.shape[1]),
+            "target": str(target),
+        })
+
+        # Metrics
+        mlflow.log_metrics(
+            {
+                "train_r2": metrics.get("train_r2", np.nan),
+                "test_r2": metrics.get("test_r2", np.nan),
+                "train_rmse": metrics.get("train_rmse", np.nan),
+                "test_rmse": metrics.get("test_rmse", np.nan),
+                "train_mae": metrics.get("train_mae", np.nan),
+                "test_mae": metrics.get("test_mae", np.nan),
+                "train_mape": metrics.get("train_mape", np.nan),
+                "test_mape": metrics.get("test_mape", np.nan),
+            },
+            step=1,
+        )
+
+        # Model
+        log_model_with_signature(model, X_train_scaled)
 
     # Step 8: Save model artifacts
     metadata = {
@@ -226,6 +286,9 @@ def run_train_only(args):
     # Scale features
     X_train_scaled, X_test_scaled, scaler = scale_features(X_train, X_test)
 
+    # Configure MLflow experiment
+    configure_mlflow()
+
     # Train model
     model = train_model(
         X_train_scaled, y_train, hyperparameter_tuning=args.tuning, random_state=args.random_state
@@ -233,6 +296,31 @@ def run_train_only(args):
 
     # Evaluate model
     metrics = evaluate_model(model, X_train_scaled, X_test_scaled, y_train, y_test, verbose=True)
+
+    # Log to MLflow
+    with mlflow.start_run(run_name="train"):
+        mlflow.log_params({
+            "mode": "train",
+            "test_size": args.test_size,
+            "random_state": args.random_state,
+            "hyperparameter_tuning": args.tuning,
+            "n_features": int(X_train_scaled.shape[1]),
+            "target": str(target),
+        })
+        mlflow.log_metrics(
+            {
+                "train_r2": metrics.get("train_r2", np.nan),
+                "test_r2": metrics.get("test_r2", np.nan),
+                "train_rmse": metrics.get("train_rmse", np.nan),
+                "test_rmse": metrics.get("test_rmse", np.nan),
+                "train_mae": metrics.get("train_mae", np.nan),
+                "test_mae": metrics.get("test_mae", np.nan),
+                "train_mape": metrics.get("train_mape", np.nan),
+                "test_mape": metrics.get("test_mape", np.nan),
+            },
+            step=1,
+        )
+        log_model_with_signature(model, X_train_scaled)
 
     # Save model
     metadata = {
@@ -281,7 +369,29 @@ def run_evaluate(args):
     )
 
     # Evaluate (printed via verbose=True)
-    evaluate_model(model, X_train_scaled, X_test_scaled, y_train, y_test, verbose=True)
+    metrics = evaluate_model(model, X_train_scaled, X_test_scaled, y_train, y_test, verbose=True)
+
+    # Log evaluation to MLflow
+    configure_mlflow()
+    with mlflow.start_run(run_name="evaluate"):
+        mlflow.log_params({
+            "mode": "evaluate",
+            "n_features": int(X_train_scaled.shape[1]),
+            "target": str(target),
+        })
+        mlflow.log_metrics(
+            {
+                "train_r2": metrics.get("train_r2", np.nan),
+                "test_r2": metrics.get("test_r2", np.nan),
+                "train_rmse": metrics.get("train_rmse", np.nan),
+                "test_rmse": metrics.get("test_rmse", np.nan),
+                "train_mae": metrics.get("train_mae", np.nan),
+                "test_mae": metrics.get("test_mae", np.nan),
+                "train_mape": metrics.get("train_mape", np.nan),
+                "test_mape": metrics.get("test_mape", np.nan),
+            },
+            step=1,
+        )
 
     print("\n✅ Evaluation completed!")
 
