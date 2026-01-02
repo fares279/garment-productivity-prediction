@@ -1,13 +1,13 @@
 """
-Main Script for Garment Productivity Prediction Pipeline
+Training Script for Garment Productivity Prediction Pipeline
 
 This script provides a command-line interface to execute the complete ML pipeline
 using Random Forest Regressor for predicting garment productivity.
 
 Usage:
-    python main.py --mode train --data data.csv --target actual_productivity
-    python main.py --mode predict --data new_data.csv --model artifacts/models/model.pkl
-    python main.py --mode full_pipeline --data data.csv --target actual_productivity
+    python scripts/train.py --mode train --data data/raw/data.csv --target actual_productivity
+    python scripts/train.py --mode predict --data data/raw/data.csv --model artifacts/models/model.pkl
+    python scripts/train.py --mode full_pipeline --data data/raw/data.csv --target actual_productivity
 """
 
 import argparse
@@ -19,11 +19,16 @@ import mlflow
 import mlflow.sklearn
 from mlflow.models.signature import infer_signature
 
-TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
+# Add project root to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Use file-based tracking instead of server (no server required)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", f"file://{PROJECT_ROOT}/mlruns")
 EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT", "garment_productivity_pipeline")
 
-# Import pipeline functions
-from model_pipeline import (
+# Import pipeline functions from src package
+from src.model_pipeline import (
     load_data,
     clean_data,
     prepare_data,

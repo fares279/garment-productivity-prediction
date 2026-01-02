@@ -1,0 +1,49 @@
+# Project Configuration File
+
+## MLflow Settings
+mlflow:
+  tracking_uri: "http://127.0.0.1:5000"
+  experiment_name: "garment_productivity_pipeline"
+  artifact_path: "mlruns"
+
+## Elasticsearch Monitoring Settings
+elasticsearch:
+  host: "localhost"
+  port: 9200
+  index_prefix: "mlflow"
+  enabled: true
+
+## Model Settings
+model:
+  type: "random_forest"
+  model_path: "artifacts/models/model.pkl"
+  scaler_path: "artifacts/scalers/scaler.pkl"
+  metadata_path: "artifacts/models/model_metadata.pkl"
+
+## Data Settings
+data:
+  raw_path: "data/raw/data.csv"
+  processed_path: "data/processed/"
+  test_path: "data/test/"
+  target_column: "actual_productivity"
+
+## Training Settings
+training:
+  test_size: 0.2
+  random_state: 42
+  cv_folds: 10
+  feature_engineering_enabled: true
+  hyperparameter_tuning: false
+
+## API Settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: true
+  log_level: "info"
+
+## Deployment Settings
+deployment:
+  docker_image: "garment-productivity:latest"
+  container_port: 8000
+  host_port: 8000

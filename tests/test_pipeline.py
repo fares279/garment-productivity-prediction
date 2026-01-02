@@ -1,7 +1,12 @@
 import pandas as pd
 import numpy as np
 import os
-from model_pipeline import (
+import sys
+
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.model_pipeline import (
     load_data,
     clean_data,
     prepare_data,

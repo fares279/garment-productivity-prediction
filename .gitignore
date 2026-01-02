@@ -43,6 +43,7 @@ htmlcov/
 # MLflow
 mlruns/
 mlflow.db
+mlartifacts/
 
 # DVC
 .dvc/

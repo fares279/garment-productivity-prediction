@@ -20,8 +20,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
 import uvicorn
 
-# Import model pipeline functions
-from model_pipeline import (
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+# Import model pipeline functions from src package
+from src.model_pipeline import (
     load_model,
     predict,
     save_model,
@@ -31,6 +34,7 @@ from model_pipeline import (
     scale_features,
     train_model,
     evaluate_model,
+    clean_data,
 )
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -69,7 +73,7 @@ class DayOfWeek(str, Enum):
 
 MODEL_PATH = "artifacts/models/model.pkl"
 SCALER_PATH = "artifacts/scalers/scaler.pkl"
-DATA_PATH = "data.csv"
+DATA_PATH = "data/raw/data.csv"
 TARGET_COLUMN = "actual_productivity"
 
 # ═════════════════════════════════════════════════════════════════════════════════

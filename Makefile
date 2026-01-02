@@ -6,7 +6,8 @@
 	data train evaluate predict feature-importance train-tuning pipeline \
 	test test-coverage deploy notebook validate-all ci api api-test api-smoke retrain-smoke \
 	docker-build docker-tag docker-push docker-run docker-deploy docker-stop docker-logs \
-	docker-clean docker-status
+	docker-clean docker-status monitoring-up monitoring-down monitoring-status monitoring-logs \
+	kibana-open elasticsearch-check monitoring-setup monitoring-test
 
 # ═════════════════════════════════════════════════════════════════════════════════
 # VARIABLES
@@ -15,7 +16,7 @@
 PYTHON := python
 PIP := pip
 VENV := venv
-DATA_FILE := data.csv
+DATA_FILE := data/raw/data.csv
 TARGET := actual_productivity
 MODEL_PATH := artifacts/models/model.pkl
 SCALER_PATH := artifacts/scalers/scaler.pkl
@@ -98,6 +99,17 @@ help:
 	@echo "    make notebook           Start Jupyter Notebook server"
 	@echo "    make notebook-lab       Start Jupyter Lab server"
 	@echo "    make mlflow-ui          Launch MLflow Tracking UI (localhost:5000)"
+	@echo ""
+	@echo "  🔍 MONITORING (Elasticsearch + Kibana)"
+	@echo "  ──────────────────────────────────────────────────────────────────────"
+	@echo "    make monitoring-setup   Install monitoring dependencies"
+	@echo "    make monitoring-up      Start Elasticsearch + Kibana stack"
+	@echo "    make monitoring-down    Stop monitoring stack"
+	@echo "    make monitoring-status  Check monitoring stack status"
+	@echo "    make monitoring-logs    View monitoring stack logs"
+	@echo "    make monitoring-test    Test monitoring integration"
+	@echo "    make kibana-open        Open Kibana in browser"
+	@echo "    make elasticsearch-check Check Elasticsearch health"
 	@echo ""
 	@echo "  🧹 CLEANUP"
 	@echo "  ──────────────────────────────────────────────────────────────────────"
@@ -253,7 +265,7 @@ train:
 	@echo "║  🤖 Training Random Forest Model                                     ║"
 	@echo "╚══════════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@$(PYTHON) main.py --mode train --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH)
+	@$(PYTHON) scripts/train.py --mode train --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH)
 	@echo ""
 	@echo "✓ Model training complete"
 	@echo ""
@@ -264,7 +276,7 @@ train-tuning:
 	@echo "║  🎯 Training with Hyperparameter Tuning                              ║"
 	@echo "╚══════════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@$(PYTHON) main.py --mode train --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH) --tuning
+	@$(PYTHON) scripts/train.py --mode train --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH) --tuning
 	@echo ""
 	@echo "✓ Model training with tuning complete"
 	@echo ""
@@ -275,7 +287,7 @@ full-pipeline:
 	@echo "║  🚀 Running Full ML Pipeline                                         ║"
 	@echo "╚══════════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@$(PYTHON) main.py --mode full_pipeline --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH)
+	@$(PYTHON) scripts/train.py --mode full_pipeline --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH)
 	@echo ""
 	@echo "✓ Full pipeline execution complete"
 	@echo ""
@@ -286,7 +298,7 @@ evaluate:
 	@echo "║  📈 Evaluating Model Performance                                     ║"
 	@echo "╚══════════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@$(PYTHON) main.py --mode evaluate --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH)
+	@$(PYTHON) scripts/train.py --mode evaluate --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH)
 	@echo ""
 	@echo "✓ Model evaluation complete"
 	@echo ""
@@ -297,7 +309,7 @@ predict:
 	@echo "║  🔮 Making Predictions                                               ║"
 	@echo "╚══════════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@$(PYTHON) main.py --mode predict --data $(DATA_FILE) --model $(MODEL_PATH) --output predictions.csv
+	@$(PYTHON) scripts/train.py --mode predict --data $(DATA_FILE) --model $(MODEL_PATH) --output predictions.csv
 	@echo ""
 	@echo "✓ Predictions saved to predictions.csv"
 	@echo ""
@@ -308,7 +320,7 @@ feature-importance:
 	@echo "║  📊 Analyzing Feature Importance                                     ║"
 	@echo "╚══════════════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@$(PYTHON) main.py --mode feature_importance --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH)
+	@$(PYTHON) scripts/train.py --mode feature_importance --data $(DATA_FILE) --target $(TARGET) --model $(MODEL_PATH)
 	@echo ""
 	@echo "✓ Feature importance analysis complete"
 	@echo ""
@@ -649,7 +661,122 @@ docker-clean:
 docker-status:
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════════════════════╗"
-	@echo "║  📊 Docker Status                                                    ║"
+	@MONITORING STACK (Elasticsearch + Kibana)
+# ═════════════════════════════════════════════════════════════════════════════════
+
+monitoring-setup:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  📦 Installing Monitoring Dependencies                               ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	$(PIP) install elasticsearch psutil docker
+	@echo ""
+	@echo "✅ Monitoring dependencies installed"
+	@echo ""
+
+monitoring-up:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🚀 Starting Monitoring Stack (Elasticsearch + Kibana)               ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📦 Starting Docker Compose..."
+	docker compose up -d
+	@echo ""
+	@echo "⏳ Waiting for services to be healthy (this may take 60-90 seconds)..."
+	@sleep 10
+	@echo ""
+	@echo "✅ Monitoring Stack Started!"
+	@echo ""
+	@echo "Services:"
+	@echo "  • Elasticsearch: http://localhost:9200"
+	@echo "  • Kibana:        http://localhost:5601"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. Wait ~60 seconds for services to fully start"
+	@echo "  2. Check status: make monitoring-status"
+	@echo "  3. Open Kibana:  make kibana-open"
+	@echo "  4. Run test:     make monitoring-test"
+	@echo ""
+
+monitoring-down:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  ⏹️  Stopping Monitoring Stack                                       ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	docker compose down
+	@echo ""
+	@echo "✅ Monitoring stack stopped"
+	@echo ""
+
+monitoring-status:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  📊 Monitoring Stack Status                                          ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "Docker Containers:"
+	@docker compose ps
+	@echo ""
+	@echo "Elasticsearch Health:"
+	@curl -s http://localhost:9200/_cluster/health?pretty 2>/dev/null || echo "❌ Elasticsearch not responding"
+	@echo ""
+	@echo "Kibana Status:"
+	@curl -s http://localhost:5601/api/status 2>/dev/null | grep -o '"level":"[^"]*"' || echo "❌ Kibana not responding"
+	@echo ""
+
+monitoring-logs:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  📋 Monitoring Stack Logs                                            ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	docker compose logs --tail=50 -f
+
+elasticsearch-check:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🔍 Checking Elasticsearch                                           ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "Cluster Health:"
+	@curl -s http://localhost:9200/_cluster/health?pretty
+	@echo ""
+	@echo "Indices:"
+	@curl -s http://localhost:9200/_cat/indices?v
+	@echo ""
+
+kibana-open:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🌐 Opening Kibana                                                   ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "Opening Kibana at http://localhost:5601"
+	@echo ""
+	@echo "To create index patterns:"
+	@echo "  1. Go to Stack Management > Index Patterns"
+	@echo "  2. Create patterns: mlflow-metrics, mlflow-params, mlflow-predictions"
+	@echo "  3. Use Discover to explore your data"
+	@echo ""
+	@cmd /c start http://localhost:5601 2>/dev/null || xdg-open http://localhost:5601 2>/dev/null || open http://localhost:5601 2>/dev/null || echo "Please open http://localhost:5601 manually"
+
+monitoring-test:
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════════════╗"
+	@echo "║  🧪 Testing Monitoring Integration                                   ║"
+	@echo "╚══════════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	$(PYTHON) -c "from monitoring import ElasticsearchLogger; logger = ElasticsearchLogger(); print('✅ Monitoring module loaded successfully')"
+	@echo ""
+	@echo "Running monitoring test script..."
+	$(PYTHON) test_monitoring.py
+	@echo ""
+
+# ═════════════════════════════════════════════════════════════════════════════════
+# echo "║  📊 Docker Status                                                    ║"
 	@echo "╚══════════════════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "Images:"
